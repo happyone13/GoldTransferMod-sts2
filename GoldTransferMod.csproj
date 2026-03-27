@@ -35,12 +35,12 @@
 
   <ItemGroup>
     <Compile Include="**/*.cs" Exclude="packages/**;**/*.uid;obj/**;bin/**;.godot/**"/>
-    <PackageReference Include="Alchyr.Sts2.BaseLib" Version="*" PrivateAssets="All"/>
     <PackageReference Include="Alchyr.Sts2.ModAnalyzers" Version="*"/>
   </ItemGroup>
 
   <ItemGroup>
     <None Include="GoldTransferMod.json"/>
+    <None Include="GoldTransferMod/**"/>
   </ItemGroup>
 
   <Target Name="CheckDependencyPaths" BeforeTargets="Build">
@@ -49,7 +49,7 @@
       Condition="'$(Sts2DataDir)' == '' or !Exists('$(Sts2DataDir)')"/>
   </Target>
 
-  <Target Name="CopyToModsFolderOnBuild" AfterTargets="PostBuildEvent">
+  <Target Name="CopyToModsFolderOnBuild" AfterTargets="Build">
     <Message Text="Copying GoldTransferMod .dll and manifest to mods folder." Importance="high"/>
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModsPath)GoldTransferMod/"/>
     <Copy SourceFiles="GoldTransferMod.json" DestinationFolder="$(ModsPath)GoldTransferMod/"/>
