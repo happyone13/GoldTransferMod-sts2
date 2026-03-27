@@ -1,0 +1,11 @@
+{
+  "id": "GoldTransferMod",
+  "name": "GoldTransferMod",
+  "author": "lozalia",
+  "description": "Multiplayer shop gold transfer button mod",
+  "version": "v0.1.0",
+  "has_pck": false,
+  "has_dll": true,
+  "dependencies": ["BaseLib"],
+  "affects_gameplay": true
+}

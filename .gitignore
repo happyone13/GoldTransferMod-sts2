@@ -1,0 +1,9 @@
+.godot/
+export_presets.cfg
+bin/
+.idea/
+*.uid
+*.pck
+*.sln
+*.user
+*.userprefs

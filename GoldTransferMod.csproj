@@ -1,0 +1,57 @@
+<Project Sdk="Godot.NET.Sdk/4.5.1">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>true</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsWindows>false</IsWindows>
+    <IsWindows Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</IsWindows>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsWindows)' == 'true'">
+    <AutoSteamPath>$(registry:HKEY_CURRENT_USER\Software\Valve\Steam@SteamPath)\steamapps</AutoSteamPath>
+    <SteamLibraryPath Condition="Exists('$(AutoSteamPath)/common/Slay the Spire 2')">$(AutoSteamPath)</SteamLibraryPath>
+    <SteamLibraryPath Condition="'$(SteamLibraryPath)' == ''">C:/Program Files (x86)/Steam/steamapps</SteamLibraryPath>
+    <Sts2Path>$(SteamLibraryPath)/common/Slay the Spire 2</Sts2Path>
+    <ModsPath>$(Sts2Path)/mods/</ModsPath>
+    <Sts2DataDir>$(Sts2Path)/data_sts2_windows_x86_64</Sts2DataDir>
+  </PropertyGroup>
+
+  <ItemGroup Condition="Exists('$(Sts2DataDir)')">
+    <Reference Include="0Harmony">
+      <HintPath>$(Sts2DataDir)/0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="sts2">
+      <HintPath>$(Sts2DataDir)/sts2.dll</HintPath>
+      <Private>false</Private>
+      <Publicize>False</Publicize>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="**/*.cs" Exclude="packages/**;**/*.uid;obj/**;bin/**;.godot/**"/>
+    <PackageReference Include="Alchyr.Sts2.BaseLib" Version="*" PrivateAssets="All"/>
+    <PackageReference Include="Alchyr.Sts2.ModAnalyzers" Version="*"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="GoldTransferMod.json"/>
+  </ItemGroup>
+
+  <Target Name="CheckDependencyPaths" BeforeTargets="Build">
+    <Error
+      Text="Slay the Spire 2 data not found at path '$(Sts2DataDir)'"
+      Condition="'$(Sts2DataDir)' == '' or !Exists('$(Sts2DataDir)')"/>
+  </Target>
+
+  <Target Name="CopyToModsFolderOnBuild" AfterTargets="PostBuildEvent">
+    <Message Text="Copying GoldTransferMod .dll and manifest to mods folder." Importance="high"/>
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModsPath)GoldTransferMod/"/>
+    <Copy SourceFiles="GoldTransferMod.json" DestinationFolder="$(ModsPath)GoldTransferMod/"/>
+  </Target>
+</Project>
