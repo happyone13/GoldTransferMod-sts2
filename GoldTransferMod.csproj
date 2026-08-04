@@ -34,7 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="**/*.cs" Exclude="packages/**;**/*.uid;obj/**;bin/**;.godot/**"/>
+    <Compile Include="**/*.cs" Exclude="packages/**;**/*.uid;obj/**;bin/**;.godot/**;.tmp/**"/>
     <PackageReference Include="Alchyr.Sts2.ModAnalyzers" Version="*"/>
   </ItemGroup>
 
@@ -49,9 +49,10 @@
       Condition="'$(Sts2DataDir)' == '' or !Exists('$(Sts2DataDir)')"/>
   </Target>
 
-  <Target Name="CopyToModsFolderOnBuild" AfterTargets="Build">
-    <Message Text="Copying GoldTransferMod .dll and manifest to mods folder." Importance="high"/>
+  <Target Name="CopyToModsFolderOnBuild" AfterTargets="Build" Condition="'$(SkipCopyToModsFolder)' != 'true'">
+    <Message Text="Copying GoldTransferMod files to mods folder." Importance="high"/>
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModsPath)GoldTransferMod/"/>
     <Copy SourceFiles="GoldTransferMod.json" DestinationFolder="$(ModsPath)GoldTransferMod/"/>
+    <Copy SourceFiles="GoldTransferMod.pck" DestinationFolder="$(ModsPath)GoldTransferMod/" Condition="Exists('GoldTransferMod.pck')"/>
   </Target>
 </Project>

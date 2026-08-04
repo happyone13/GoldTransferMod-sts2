@@ -1,5 +1,6 @@
 using Godot;
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Modding;
 using GoldTransferMod.Shops;
 
@@ -16,9 +17,21 @@ public partial class MainFile : Node
     public static void Initialize()
     {
         ShopTransferSettings.Load();
-        ShopTransferModConfigBridge.TryInitialize();
+        TaskHelper.RunSafely(InitializeModConfigDeferred());
         Harmony harmony = new(ModId);
         harmony.PatchAll();
         ShopTransferNetwork.Initialize();
+    }
+
+    private static async System.Threading.Tasks.Task InitializeModConfigDeferred()
+    {
+        SceneTree? tree = Engine.GetMainLoop() as SceneTree;
+        if (tree != null)
+        {
+            await tree.ToSignal(tree, SceneTree.SignalName.ProcessFrame);
+            await tree.ToSignal(tree, SceneTree.SignalName.ProcessFrame);
+        }
+
+        ShopTransferModConfigBridge.TryInitialize();
     }
 }

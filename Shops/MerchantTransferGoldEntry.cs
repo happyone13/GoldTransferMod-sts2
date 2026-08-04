@@ -35,7 +35,7 @@ public sealed class MerchantTransferGoldEntry : MerchantEntry
     public override bool IsStocked =>
         _player.RunState.CurrentRoom is MerchantRoom &&
         _player.RunState.Players.Count > 1 &&
-        (ShopTransferSettings.IsFreeTransferEnabled() || !TransferGoldState.IsUsed(_player.RunState));
+        !TransferGoldState.IsUsed(_player.RunState);
 
     public override void CalcCost()
     {
@@ -79,10 +79,7 @@ public sealed class MerchantTransferGoldEntry : MerchantEntry
             MainFile.Logger.Info($"[ShopTransfer] Transfer committed (single-player): {_player.NetId} -> {targetPlayer.NetId}, amount={_amount}");
         }
 
-        if (!ShopTransferSettings.IsFreeTransferEnabled())
-        {
-            TransferGoldState.MarkUsed(_player.RunState);
-        }
+        TransferGoldState.MarkUsed(_player.RunState);
         return (true, _amount);
     }
 
@@ -98,13 +95,21 @@ public sealed class MerchantTransferGoldEntry : MerchantEntry
     {
         public static async Task<Player?> SelectTargetPlayerAsync(Vector2 startPosition)
         {
-            NTargetManager targetManager = NTargetManager.Instance;
+            NTargetManager? targetManager = NTargetManager.Instance;
             if (targetManager == null)
             {
                 return null;
             }
 
-            bool isUsingController = NControllerManager.Instance.IsUsingController;
+            bool isUsingController = NControllerManager.Instance?.IsUsingController ?? false;
+            NMultiplayerPlayerStateContainer? container = isUsingController
+                ? NRun.Instance?.GlobalUi.MultiplayerPlayerContainer
+                : null;
+            if (isUsingController && container == null)
+            {
+                return null;
+            }
+
             targetManager.StartTargeting(
                 TargetType.AnyPlayer,
                 startPosition,
@@ -113,34 +118,33 @@ public sealed class MerchantTransferGoldEntry : MerchantEntry
                 null
             );
 
-            if (isUsingController)
+            if (container != null)
             {
-                NMultiplayerPlayerStateContainer container = NRun.Instance.GlobalUi.MultiplayerPlayerContainer;
                 container.FirstPlayerState?.Hitbox.GrabFocus();
                 container.LockNavigation();
             }
 
             try
             {
-                Node node = await targetManager.SelectionFinished();
-                NRun.Instance.GlobalUi.MultiplayerPlayerContainer.UnlockNavigation();
+                Node? node = await targetManager.SelectionFinished();
+                container?.UnlockNavigation();
 
                 return node switch
                 {
                     NMultiplayerPlayerState playerState => playerState.Player,
-                    NCreature creature => creature.Entity.Player,
+                    NCreature { Entity.Player: not null } creature => creature.Entity.Player,
                     _ => null
                 };
             }
             finally
             {
-                NRun.Instance.GlobalUi.MultiplayerPlayerContainer.UnlockNavigation();
+                container?.UnlockNavigation();
             }
         }
 
         private static bool ShouldCancelTargeting()
         {
-            return NOverlayStack.Instance.ScreenCount > 0;
+            return (NOverlayStack.Instance?.ScreenCount ?? 0) > 0;
         }
     }
 }

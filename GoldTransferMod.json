@@ -3,8 +3,10 @@
   "name": "GoldTransferMod",
   "author": "lozalia",
   "description": "Multiplayer shop gold transfer button mod",
-  "version": "v0.1.0",
+  "version": "v0.2.0",
+  "dependencies": [],
   "has_pck": true,
   "has_dll": true,
-  "affects_gameplay": true
+  "affects_gameplay": true,
+  "min_game_version": "0.107.0"
 }
